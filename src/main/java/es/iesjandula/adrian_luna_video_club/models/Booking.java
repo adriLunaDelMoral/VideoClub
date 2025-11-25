@@ -32,10 +32,19 @@ public class Booking
     private User user;
 
     @ManyToOne
-    @MapsId("movieId") 
+    @MapsId("movieId")
     @JoinColumn(name = "movie_id")
     private Movie movie;
     
     @Column
     private LocalDate fechaAlquiler;
+    
+/*
+ *     añadir aqui la review?¿
+ *  private String userName;
+    private String review;
+    
+    poner a movie un stock de peliculas que cuando llegue a 0 no se puedan alquilar
+ */
+
 }
