@@ -1,3 +1,9 @@
 spring:
-  application:
-    name: AdrianLunaVideoClub
+  datasource:
+    url: jdbc:mysql://localhost:3306/AdrianLunaVideoClub?createDatabaseIfNotExist=true
+    username: root  
+    password: toor
+  jpa:
+    hibernate:
+      ddl-auto: update  
+    show-sql: true
