@@ -1,6 +1,5 @@
 package es.iesjandula.adrian_luna_video_club.rest;
 
-import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,11 +54,11 @@ public class MovieRestController
             this.movieRepository.saveAndFlush(movie);
 
             log.info(Constants.ELEMENTO_AGREGADO);
-            return ResponseEntity.ok().build();
+            return ResponseEntity.status(200).build();
         }
         catch (VideoClubException exception)
         {
-            return ResponseEntity.badRequest().body(exception.getBodyExceptionMessage());
+            return ResponseEntity.status(400).body(exception.getBodyExceptionMessage());
         }
     }
 
@@ -110,18 +109,18 @@ public class MovieRestController
             this.movieRepository.deleteById(movieId);
 
             log.info(Constants.ELEMENTO_ELIMINADO);
-            return ResponseEntity.ok().build();
+            return ResponseEntity.status(200).build();
         }
         catch (VideoClubException exception)
         {
-            return ResponseEntity.badRequest().body(exception.getBodyExceptionMessage());
+            return ResponseEntity.status(400).body(exception.getBodyExceptionMessage());
         }
     }
 
     @GetMapping(value = "/")
     public ResponseEntity<?> obtenerPeliculas()
     {
-        List<Movie> movies = this.movieRepository.findAll();
-        return ResponseEntity.ok().body(movies);
+        
+        return ResponseEntity.status(200).body(this.movieRepository.buscarPeliculas());
     }
 }

@@ -9,8 +9,10 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class InfoReviewRequestDto
+public class MovieListResposiveDto
 {
-    private String userName;
-    private String review;
+
+	private String title;
+	private String duration;
+	private Long Stock;
 }

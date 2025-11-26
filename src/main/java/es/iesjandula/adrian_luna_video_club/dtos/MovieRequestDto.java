@@ -15,4 +15,5 @@ public class MovieRequestDto
     private String title;
     private String duration;  
     private Long rentedByUserId; 
+    private Long stock;
 }

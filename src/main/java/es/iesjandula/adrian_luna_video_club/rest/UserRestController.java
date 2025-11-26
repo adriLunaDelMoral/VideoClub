@@ -1,6 +1,5 @@
 package es.iesjandula.adrian_luna_video_club.rest;
 
-import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -87,14 +86,14 @@ public class UserRestController
             if (userRequestDto.getUserId() == null)
             {
                 log.error(Constants.ERR_USER_EMPTY);
-                throw new VideoClubException(Constants.ERR_USER_CODE, Constants.ERR_USER_EMPTY);
+                throw new VideoClubException(Constants.ERR_USER_NOT_FOUND_CODE, Constants.ERR_USER_EMPTY);
             }
 
             Optional<User> userOptional = this.userRepository.findById(userRequestDto.getUserId());
             if (!userOptional.isPresent())
             {
                 log.error(Constants.ERR_USER_NOT_FOUND);
-                throw new VideoClubException(Constants.ERR_USER_CODE, Constants.ERR_USER_NOT_FOUND);
+                throw new VideoClubException(Constants.ERR_USER_NOT_FOUND_CODE, Constants.ERR_USER_NOT_FOUND);
             }
 
             User user = userOptional.get();
@@ -105,7 +104,7 @@ public class UserRestController
             this.userRepository.saveAndFlush(user);
 
             log.info(Constants.ELEMENTO_MODIFICADO);
-            return ResponseEntity.ok().build();
+            return ResponseEntity.status(200).build();
         }
         catch (VideoClubException exception)
         {
@@ -121,29 +120,24 @@ public class UserRestController
             if (!this.userRepository.existsById(userId))
             {
                 log.error(Constants.ERR_USER_NOT_FOUND);
-                throw new VideoClubException(Constants.ERR_USER_CODE, Constants.ERR_USER_NOT_FOUND);
+                throw new VideoClubException(Constants.ERR_USER_NOT_FOUND_CODE, Constants.ERR_USER_NOT_FOUND);
             }
 
             this.userRepository.deleteById(userId);
 
             log.info(Constants.ELEMENTO_ELIMINADO);
-            return ResponseEntity.ok().build();
+            return ResponseEntity.status(200).build();
         }
         catch (VideoClubException exception)
         {
-            return ResponseEntity.badRequest().body(exception.getBodyExceptionMessage());
+            return ResponseEntity.status(400).body(exception.getBodyExceptionMessage());
         }
     }
 
     @GetMapping(value = "/")
     public ResponseEntity<?> obtenerUsuarios()
     {
-        List<User> users = this.userRepository.findAll();
-        log.info("Consulta de todos los usuarios realizada.");
-        return ResponseEntity.ok().body(users);
+        return ResponseEntity.status(200).body(this.userRepository.buscarUsuarios());
     }
-    
-    
-    
-    
+       
 }

@@ -1,0 +1,298 @@
+swagger: '2.0'
+host: localhost:8080
+basePath: /videoclub
+info:
+  title: videoclub
+  version: 1.0.0
+  description: Esta especificación muestra cómo gestionar un videoclub
+  contact:
+    name: Fulanito Menganito
+    email: fulanito.menganito@empresa.com
+    url: https://www.videoclub.es
+schemes:
+ - http
+ 
+          ######################################################
+          ############### ENTRYPOINTS y ENDPOINTS ##############
+          ######################################################
+
+paths:
+
+            ##################################################
+            ############## TAREAS Endpoints ##################
+            ################################################## 
+
+  /movies:
+
+    post:
+      operationId: uploadMovies
+      description: Subir al servidor un JSON con películas para almacenarlas en sesión
+      consumes:
+        - multipart/form-data
+      parameters:
+        - name: jsonFile
+          description: Fichero JSON con las películas a almacenar en sesión
+          in: formData
+          type: file
+      responses:
+        200:
+          description: La carga de datos fue realizada correctamente
+        401:
+          description: Error de carga
+          schema:
+            $ref: '#/definitions/MovieError'
+        402:
+          description: otro error de carga
+
+    get:
+      operationId: downloadMovies
+      description: Descargar JSON con las películas que hay en sesión
+      produces:
+        - multipart/form-data
+      responses:
+        200:
+          description: JSON con las películas que hay en sesión
+          schema:
+            type: file
+          examples:
+            multipart/form-data: [ 
+              { "movieId": 1, "title": "Encanto", "duration" : "01:42" },
+              { "movieId": 2, "title": "Frozen: El reino del hielo", "duration" : "01:41" },
+              { "movieId": 3, "title": "Hércules", "duration" : "01:33" },
+              { "movieId": 4, "title": "Vaiana", "duration" : "01:47" }
+            ]
+
+  /users:
+
+    post:
+      operationId: uploadUsers
+      description: Subir al servidor un JSON con usuarios para almacenarlos en sesión
+      consumes:
+        - multipart/form-data
+      parameters:
+        - name: jsonFile
+          description: Fichero JSON con los usuarios a almacenar en sesión
+          in: formData
+          type: file
+      responses:
+        200:
+          description: La carga de datos fue realizada correctamente
+        400:
+          description: Error de carga
+        500:
+          description: Error de carga servidor
+        
+
+    get:
+      operationId: downloadUsers
+      description: Descargar JSON con los usuarios que hay en sesión
+      produces:
+        - multipart/form-data
+      responses:
+        200:
+          description: JSON con los usuarios que hay en sesión
+          schema:
+            type: file
+          examples:
+            multipart/form-data: [ 
+              { "userId": 1, "userName": "Paco" },
+              { "userId": 2, "userName": "Pepe" },
+              { "userId": 3, "userName": "Pedro" }
+            ]
+
+  /booking:
+
+    get:
+      operationId: getMovies
+      description: Obtener la lista de películas almacenadas en sesión (no alquiladas aún)
+      produces:
+        - application/json
+      responses:
+        200:
+          description: Devuelve la lista de películas de películas almacenadas en sesión (no alquiladas aún)
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Movie'
+          examples:
+            application/json: [ 
+              { "movieId": 1, "title": "Encanto", "duration" : "01:42" },
+              { "movieId": 2, "title": "Frozen: El reino del hielo", "duration" : "01:41" },
+              { "movieId": 3, "title": "Hércules", "duration" : "01:33" },
+              { "movieId": 4, "title": "Vaiana", "duration" : "01:47" }
+            ]
+
+    post:
+      operationId: searchMovies
+      description: Obtener la lista de películas almacenadas en sesión que \
+        cumplen alguno de los parámetros que se envían (no alquiladas aún)
+      parameters:
+        - name: searchByFields
+          in: body
+          description: objeto que lleva rellenos aquellos campos con los que buscar
+          required: true
+          schema:
+            $ref: '#/definitions/Movie'
+      produces:
+        - application/json
+      responses:
+        200:
+          description: Devuelve una lista de películas almacenadas en sesión que \
+            cumplen los criterios de búsqueda (no alquiladas aún)
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Movie'
+          examples:
+            application/json: [ 
+              { "movieId": 1, "title": "Encanto", "duration" : "01:42" }
+            ]
+
+  /booking/{movieId}:
+  
+    parameters:
+      - name: movieId
+        in: path
+        description: Identificador de la película
+        required: true
+        type: integer
+        format: int64
+      - name: userId
+        in: query
+        description: Identificador del usuario
+        required: true
+        type: integer
+        format: int64
+            
+    post:
+      operationId: bookingMovie
+      description: Reservar película a un usuario
+      produces:
+        - application/json
+      responses:
+        200:
+          description: Película reservada correctamente
+        400:
+          description: Película no encontrada
+          schema:
+            $ref: '#/definitions/MovieError'
+          examples:
+            application/json: { "movieErrorId": 1, "message": "Movie was not found" }
+        404:
+          description: El usuario no existe
+          schema:
+            $ref: '#/definitions/MovieError'   
+          examples:
+            application/json: { "movieErrorId": 1, "message": "User was not found" }
+
+    delete:
+      operationId: cancelBookingMovie
+      description: Cancelar película de un usuario
+      produces:
+        - application/json
+      responses:
+        200:
+          description: Cancelación de reservada realizada
+        400:
+          description: Película no encontrada
+          schema:
+            $ref: '#/definitions/MovieError'
+          examples:
+            application/json: { "movieErrorId": 1, "message": "Movie was not found" }
+        404:
+          description: El usuario no existe
+          schema:
+            $ref: '#/definitions/MovieError'   
+          examples:
+            application/json: { "movieErrorId": 1, "message": "User was not found" }
+
+
+            ##################################################
+            ######## TAREAS Thymeleaf (EntryPoints) ##########
+            ##################################################
+
+  /:
+  
+    get:
+      operationId: showIndex
+      description: devuelve el index.html
+      produces:
+        - text/html
+      responses:
+        200:
+          description: redirecciona al index.html. \
+            Esta web posee un formulario (usuario y reseña)
+            
+  /formulario:
+  
+    post:
+      operationId: userReview
+      description: recibe el usuario y reseña de index.html, y lo envía a thanks.html
+      consumes:
+        - application/json
+      parameters:
+        - name: infoOverview
+          in: body
+          description: Información del usuario y reseña
+          required: true
+          schema:
+            $ref: '#/definitions/InfoReview'
+      produces:
+        - text/html
+      responses:
+        200:
+          description: redirecciona a thanks.html. \
+            Esta web da las gracias al usuario y lo que escribió en la reseña. Por ejemplo \
+            Muchas gracias <Paco> por escribir la reseña <reseña del usuario>
+
+          ######################################################
+          ##################### DEFINITIONS ####################
+          ######################################################
+
+definitions:
+
+  Movie:
+    type: object
+    properties:
+      movieId:
+        type: integer
+        format: int64
+        description: Identificador de la película
+      title:
+        type: string
+        description: Título de la película
+      duration:
+        type: string
+        description: Duración de la película en formato HH:MM
+  
+  User:
+    type: object
+    properties:
+      userId:
+        type: integer
+        format: int64
+        description: Identificador del usuario
+      userName:
+        type: string
+        description: Nombre del usuario
+       
+  MovieError:
+    type: object
+    properties:
+      movieErrorId:
+        type: integer
+        format: int64
+        description: Identificador de error
+      message:
+        type: string
+        description: Mensaje de error
+
+  InfoReview:
+    type: object
+    properties:
+      userName:
+        type: string
+        description: nombre del usuario
+      review:
+        type: string
+        description: Reseña del usuario

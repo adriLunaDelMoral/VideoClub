@@ -9,13 +9,8 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class BookingRequestDto
+public class BookingListResponsiveDto
 {
-    private Long userId;
-   
-    private Long movieId;
-    
-    private String review;
-    
-    
+	private String title;
+	private String userName;
 }

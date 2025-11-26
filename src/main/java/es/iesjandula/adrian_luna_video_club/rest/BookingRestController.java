@@ -1,7 +1,6 @@
 package es.iesjandula.adrian_luna_video_club.rest;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,7 +58,7 @@ public class BookingRestController
             if (!userOptional.isPresent())
             {
                 log.error(Constants.ERR_USER_NOT_FOUND);
-                throw new VideoClubException(Constants.ERR_USER_CODE, Constants.ERR_USER_NOT_FOUND);
+                throw new VideoClubException(Constants.ERR_USER_NOT_FOUND_CODE, Constants.ERR_USER_NOT_FOUND);
             }
 
             Optional<Movie> movieOptional = this.movieRepository.findById(movieId);
@@ -70,10 +69,12 @@ public class BookingRestController
             }
             
             // El stock se guarda en pelicula
+            
             Movie movie = movieOptional.get() ;
             if (movie.getStock() < 1)
             {
-            	// No hay películas disponibles de este tipo
+            	log.error(Constants.ERR_MOVIE_NOT_FOUND);
+            	throw new VideoClubException(Constants.ERR_MOVIE_CODE, Constants.ERR_MOVIE_NOT_FOUND);
             }
 
             BookingId bookingId = new BookingId(userId, movieId);
@@ -89,25 +90,26 @@ public class BookingRestController
             booking.setBookingId(bookingId); 
             booking.setUser(userOptional.get());
             booking.setMovie(movieOptional.get());
+            booking.setReview(bookingRequestDto.getReview());
             booking.setFechaAlquiler(LocalDate.now()); 
 
             this.bookingRepository.saveAndFlush(booking);
 
             // Reduzco del stock
             movie.setStock(movie.getStock() - 1) ;
-            this.movieRepository.saveAllAndFlush(movie) ;
+            this.movieRepository.saveAndFlush(movie);
             
             log.info(Constants.ELEMENTO_AGREGADO);
             return ResponseEntity.status(208).build();
         }
         catch (VideoClubException exception)
         {
-            return ResponseEntity.badRequest().body(exception.getBodyExceptionMessage());
+            return ResponseEntity.status(400).body(exception.getBodyExceptionMessage());
         }
         catch (Exception exception)
         {
             log.error(exception.getMessage(), exception);
-            return ResponseEntity.badRequest().body(new VideoClubException(Constants.GENERIC_CODE, Constants.ERR_BOOKING_NOT_FOUND, exception).getBodyExceptionMessage());
+            return ResponseEntity.status(404).body(new VideoClubException(Constants.GENERIC_CODE, Constants.ERR_BOOKING_NOT_FOUND, exception).getBodyExceptionMessage());
         }
     }
 
@@ -127,27 +129,41 @@ public class BookingRestController
             // Elimino reserva
             this.bookingRepository.deleteById(bookingId);
             
-            // Incremento stock
+            Optional<Movie> movieOptional = this.movieRepository.findById(movieId);
             
             // Buscar película
+            if (movieOptional.isPresent())
+            {
+                Movie movie = movieOptional.get();
+                // Incremento stock
+                movie.setStock(movie.getStock() + 1);
+                
+                // Save and flush de película
+                this.movieRepository.saveAndFlush(movie);
+            } 
+            else
+            {
+            	log.error(Constants.ERR_BOOKING_NOT_FOUND);
+            	throw new VideoClubException(Constants.ERR_BOOKING_CODE, Constants.ERR_BOOKING_NOT_FOUND);
+            }
             
-            // Incrementar stock
-            
-            // Save and flush de película
-
             log.info(Constants.ELEMENTO_ELIMINADO);
-            return ResponseEntity.ok().build();
+            return ResponseEntity.status(200).build();
         }
         catch (VideoClubException exception)
         {
-            return ResponseEntity.badRequest().body(exception.getBodyExceptionMessage());
+            return ResponseEntity.status(400).body(exception.getBodyExceptionMessage());
         }
+        catch (Exception exception) 
+        {
+        	VideoClubException videoClubException = new VideoClubException(404,Constants.ERR_BOOKING_NOT_FOUND) ;
+        	return ResponseEntity.status(404).body(videoClubException.getBodyExceptionMessage());
+		}
     }
 
     @GetMapping(value = "/")
     public ResponseEntity<?> obtenerReservas()
     {
-        List<Booking> bookings = this.bookingRepository.findAll();
-        return ResponseEntity.ok().body(bookings);
+        return ResponseEntity.ok().body(this.bookingRepository.buscarReservas());
     }
 }

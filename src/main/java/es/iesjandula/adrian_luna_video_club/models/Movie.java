@@ -33,6 +33,11 @@ public class Movie
 	@Column(nullable = false)
 	private String duration;
 	
+	@Column(nullable = false)
+	private Long stock;
+	
+	
+	
 	@OneToMany(mappedBy = "movie")
     private List<Booking> bookings;
 }

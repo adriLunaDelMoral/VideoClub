@@ -39,12 +39,8 @@ public class Booking
     @Column
     private LocalDate fechaAlquiler;
     
-/*
- *     añadir aqui la review?¿
- *  private String userName;
+    @Column
     private String review;
     
-    poner a movie un stock de peliculas que cuando llegue a 0 no se puedan alquilar
- */
 
 }
