@@ -48,7 +48,6 @@ public class BookingRestController
         {
             Long userId = bookingRequestDto.getUserId();
             Long movieId = bookingRequestDto.getMovieId();
-            BookingId bookingId = new BookingId(userId, movieId);
 
             if (userId == null || movieId == null)
             {
@@ -69,7 +68,15 @@ public class BookingRestController
                 log.error(Constants.ERR_MOVIE_NOT_FOUND);
                 throw new VideoClubException(Constants.ERR_MOVIE_CODE, Constants.ERR_MOVIE_NOT_FOUND);
             }
+            
+            // El stock se guarda en pelicula
+            Movie movie = movieOptional.get() ;
+            if (movie.getStock() < 1)
+            {
+            	// No hay películas disponibles de este tipo
+            }
 
+            BookingId bookingId = new BookingId(userId, movieId);
             Optional<Booking> bookingOptional = this.bookingRepository.findById(bookingId);
             if (bookingOptional.isPresent())
             {
@@ -77,6 +84,7 @@ public class BookingRestController
                 throw new VideoClubException(Constants.ERR_BOOKING_CODE, Constants.ERR_BOOKING_MOVIE_NOT_AVAILABLE);
             }
    
+            // Reservo la película
             Booking booking = new Booking();
             booking.setBookingId(bookingId); 
             booking.setUser(userOptional.get());
@@ -85,8 +93,12 @@ public class BookingRestController
 
             this.bookingRepository.saveAndFlush(booking);
 
+            // Reduzco del stock
+            movie.setStock(movie.getStock() - 1) ;
+            this.movieRepository.saveAllAndFlush(movie) ;
+            
             log.info(Constants.ELEMENTO_AGREGADO);
-            return ResponseEntity.ok().build();
+            return ResponseEntity.status(208).build();
         }
         catch (VideoClubException exception)
         {
@@ -112,7 +124,16 @@ public class BookingRestController
                 throw new VideoClubException(Constants.ERR_BOOKING_CODE, Constants.ERR_BOOKING_NOT_FOUND);
             }
 
+            // Elimino reserva
             this.bookingRepository.deleteById(bookingId);
+            
+            // Incremento stock
+            
+            // Buscar película
+            
+            // Incrementar stock
+            
+            // Save and flush de película
 
             log.info(Constants.ELEMENTO_ELIMINADO);
             return ResponseEntity.ok().build();

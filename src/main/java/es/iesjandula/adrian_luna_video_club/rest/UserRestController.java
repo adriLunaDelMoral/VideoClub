@@ -37,18 +37,18 @@ public class UserRestController
             if (userRequestDto.getUserName() == null || userRequestDto.getUserName().isEmpty())
             {
                 log.error(Constants.ERR_USER_EMPTY);
-                throw new VideoClubException(Constants.ERR_USER_CODE, Constants.ERR_USER_EMPTY);
+                throw new VideoClubException(Constants.ERR_USER_EMPTY_CODE, Constants.ERR_USER_EMPTY);
             }
 
             if (userRequestDto.getUserId() != null && this.userRepository.existsById(userRequestDto.getUserId()))
             {
                 log.error(Constants.ERR_USER_ALREADY_EXISTS);
-                throw new VideoClubException(Constants.ERR_USER_CODE, Constants.ERR_USER_ALREADY_EXISTS);
+                throw new VideoClubException(Constants.ERR_USER_ALREADY_EXISTS_CODE, Constants.ERR_USER_ALREADY_EXISTS);
             }
 
             User user = new User();
             user.setUserName(userRequestDto.getUserName());
-            user.setBookings(null);
+           
 
             this.userRepository.saveAndFlush(user);
 
@@ -57,12 +57,25 @@ public class UserRestController
         }
         catch (VideoClubException exception)
         {
-            return ResponseEntity.badRequest().body(exception.getBodyExceptionMessage());
+        	int responseCode = -1 ;
+        	if (exception.getCodigo() == Constants.ERR_USER_EMPTY_CODE)
+        	{
+        		responseCode = 401 ;
+        	}
+        	else
+        	{
+        		responseCode = 402 ;
+        	}
+        	
+        	return ResponseEntity.status(responseCode).body(exception.getBodyExceptionMessage());
         }
-        catch (Exception e)
+        catch (Exception exception)
         {
-            log.error("Error al crear usuario: " + e.getMessage());
-            return ResponseEntity.badRequest().body(new VideoClubException(Constants.GENERIC_CODE, "Error al guardar el usuario.").getBodyExceptionMessage());
+            log.error("Error al crear usuario: " + exception.getMessage());
+            
+            VideoClubException videoClubException = new VideoClubException(Constants.GENERIC_CODE, "Error al guardar el usuario.");
+            		
+            return ResponseEntity.status(500).body(videoClubException.getBodyExceptionMessage());
         }
     }
 

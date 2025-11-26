@@ -50,7 +50,7 @@ public class MovieRestController
             movie.setMovieId(movieRequestDto.getMovieId());
             movie.setTitle(movieRequestDto.getTitle());
             movie.setDuration(movieRequestDto.getDuration());
-            movie.setBookings(null); 
+            
 
             this.movieRepository.saveAndFlush(movie);
 

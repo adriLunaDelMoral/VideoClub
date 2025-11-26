@@ -9,9 +9,13 @@ public class Constants
     public static final String ERR_MOVIE_EMPTY = "Los datos de la película están vacíos o son nulos";
 
     /* Errores relacionados con usuarios */
-    public static final Integer ERR_USER_CODE = 2;
+    public static final Integer ERR_USER_NOT_FOUND_CODE = 2;
     public static final String ERR_USER_NOT_FOUND = "El usuario no fue encontrado";
+    
+    public static final Integer ERR_USER_ALREADY_EXISTS_CODE = 3;
     public static final String ERR_USER_ALREADY_EXISTS = "El usuario ya existe";
+    
+    public static final Integer ERR_USER_EMPTY_CODE = 4;
     public static final String ERR_USER_EMPTY = "Los datos del usuario están vacíos o son nulos";
 
     /* Errores relacionados con reservas */
