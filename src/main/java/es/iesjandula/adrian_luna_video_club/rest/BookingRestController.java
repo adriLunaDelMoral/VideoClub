@@ -25,21 +25,38 @@ import es.iesjandula.adrian_luna_video_club.utils.Constants;
 import es.iesjandula.adrian_luna_video_club.utils.VideoClubException;
 import lombok.extern.slf4j.Slf4j;
 
-
+/**
+ * Controlador REST encargado de gestionar las reservas de películas.
+ * Permite crear, eliminar y consultar reservas en el videoclub.
+ *
+ * Esta clase está mapeada con los endpoints bajo el path "/videoclub/bookings".
+ * 
+ * @author Adrián
+ * @since 2025-11-07
+ */
 @Slf4j
 @RestController
 @RequestMapping("/videoclub/bookings")
 public class BookingRestController
 {
+	/** Repositorio para interactuar con la tabla de reservas */
     @Autowired
     private IBookingRepository bookingRepository;
 
+    /** Repositorio para interactuar con la tabla de usuarios */
     @Autowired
     private IUserRepository userRepository;
 
+    /** Repositorio para interactuar con la tabla de películas */
     @Autowired
     private IMovieRepository movieRepository;
 
+    /**
+     * Crea una nueva reserva de una película para un usuario.
+     *
+     * @param bookingRequestDto DTO con información del usuario y película a reservar
+     * @return ResponseEntity con el resultado de la operación
+     */
     @PostMapping(value = "/", consumes = "application/json")
     public ResponseEntity<?> crearReserva(@RequestBody BookingRequestDto bookingRequestDto)
     {
@@ -48,19 +65,20 @@ public class BookingRestController
             Long userId = bookingRequestDto.getUserId();
             Long movieId = bookingRequestDto.getMovieId();
 
+            // Validación de ID de usuario y película
             if (userId == null || movieId == null)
             {
                 log.error(Constants.ERR_BOOKING_NOT_FOUND);
                 throw new VideoClubException(Constants.ERR_BOOKING_CODE, Constants.ERR_BOOKING_NOT_FOUND);
             }
-
+            // Buscar usuario en la BD
             Optional<User> userOptional = this.userRepository.findById(userId);
             if (!userOptional.isPresent())
             {
                 log.error(Constants.ERR_USER_NOT_FOUND);
                 throw new VideoClubException(Constants.ERR_USER_NOT_FOUND_CODE, Constants.ERR_USER_NOT_FOUND);
             }
-
+            // Buscar película en la BD
             Optional<Movie> movieOptional = this.movieRepository.findById(movieId);
             if (!movieOptional.isPresent())
             {
@@ -69,23 +87,25 @@ public class BookingRestController
             }
             
             // El stock se guarda en pelicula
-            
+            // Comprobar stock disponible
             Movie movie = movieOptional.get() ;
             if (movie.getStock() < 1)
             {
             	log.error(Constants.ERR_MOVIE_NOT_FOUND);
             	throw new VideoClubException(Constants.ERR_MOVIE_CODE, Constants.ERR_MOVIE_NOT_FOUND);
             }
-
+            // Componer ID de la reserva
             BookingId bookingId = new BookingId(userId, movieId);
             Optional<Booking> bookingOptional = this.bookingRepository.findById(bookingId);
+            
+            // Validar si ya existe una reserva con ese ID
             if (bookingOptional.isPresent())
             {
                 log.error(Constants.ERR_BOOKING_MOVIE_NOT_AVAILABLE);
                 throw new VideoClubException(Constants.ERR_BOOKING_CODE, Constants.ERR_BOOKING_MOVIE_NOT_AVAILABLE);
             }
    
-            // Reservo la película
+            // Crear nueva reserva
             Booking booking = new Booking();
             booking.setBookingId(bookingId); 
             booking.setUser(userOptional.get());
@@ -113,13 +133,20 @@ public class BookingRestController
         }
     }
 
+    /**
+     * Elimina una reserva existente y devuelve el stock de la película.
+     *
+     * @param userId ID del usuario
+     * @param movieId ID de la película
+     * @return ResponseEntity con resultado de la operación
+     */
     @DeleteMapping(value = "/{userId}/{movieId}") 
     public ResponseEntity<?> borrarReserva(@PathVariable("userId") Long userId, @PathVariable("movieId") Long movieId)
     {
         try
         {
             BookingId bookingId = new BookingId(userId, movieId); 
-
+            // Validar si existe
             if (!this.bookingRepository.existsById(bookingId))
             {
                 log.error(Constants.ERR_BOOKING_NOT_FOUND);
@@ -160,10 +187,27 @@ public class BookingRestController
         	return ResponseEntity.status(404).body(videoClubException.getBodyExceptionMessage());
 		}
     }
-
+    /**
+     * Obtiene todas las reservas almacenadas en la base de datos.
+     *
+     * @return ResponseEntity con la lista de reservas
+     */
     @GetMapping(value = "/")
     public ResponseEntity<?> obtenerReservas()
     {
-        return ResponseEntity.ok().body(this.bookingRepository.buscarReservas());
+    	try
+		{
+    		return ResponseEntity.ok().body(this.bookingRepository.buscarReservas());
+			
+		} 
+    	catch (Exception exception) 
+    	{
+    	    log.error("Error inesperado al eliminar la reserva", exception);
+
+    	    VideoClubException videoClubException =
+    	            new VideoClubException(Constants.GENERIC_CODE, "Error interno del servidor.", exception);
+
+    	    return ResponseEntity.status(500).body(videoClubException.getBodyExceptionMessage());
+    	}
     }
 }

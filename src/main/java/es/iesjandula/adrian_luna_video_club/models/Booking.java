@@ -21,24 +21,33 @@ import lombok.Setter;
 @AllArgsConstructor
 @Entity
 @Table(name = "booking") 
+/**
+ * Entidad que representa una reserva/alquiler de una película por parte
+ * de un usuario. Utiliza una clave primaria compuesta contenida en BookingId.
+ */
 public class Booking
 {
+	/** Clave primaria compuesta formada por userId y movieId */
 	@EmbeddedId
     private BookingId bookingId;
 
+	/** Relación muchos-a-uno con User, usando su ID como parte de la clave compuesta */
     @ManyToOne
     @MapsId("userId") 
     @JoinColumn(name = "user_id")
     private User user;
 
+    /** Relación muchos-a-uno con Movie, usando su ID como parte de la clave compuesta */
     @ManyToOne
     @MapsId("movieId")
     @JoinColumn(name = "movie_id")
     private Movie movie;
     
+    /** Fecha en que se realiza el alquiler */
     @Column
     private LocalDate fechaAlquiler;
     
+    /** Reseña opcional que el usuario deja sobre la película */
     @Column
     private String review;
     

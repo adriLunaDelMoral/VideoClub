@@ -20,24 +20,31 @@ import lombok.Setter;
 @AllArgsConstructor
 @Entity
 @Table(name = "movies")
+/**
+ * Entidad que representa una película dentro del videoclub.
+ */
 public class Movie
 {
+	/** Identificador único de la película, generado automáticamente */
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column
 	private Long movieId;
 
+	/** Título de la película */
 	@Column(nullable = false)
 	private String title;
 	
+	/** Duración en formato texto (por ejemplo: "2h 15m") */
 	@Column(nullable = false)
 	private String duration;
 	
+	/** Cantidad de ejemplares disponibles en stock */
 	@Column(nullable = false)
 	private Long stock;
 	
 	
-	
+	/** Lista de reservas en las que aparece esta película (relación 1-N) */
 	@OneToMany(mappedBy = "movie")
     private List<Booking> bookings;
 }
